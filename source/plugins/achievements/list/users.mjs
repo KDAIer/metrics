@@ -2,6 +2,13 @@
 export default async function({list, login, data, computed, imports, graphql, queries, rest, rank, leaderboard}) {
   //Initialization
   const {user} = await graphql(queries.achievements({login}))
+  
+  // —— Patch ——  
+  // 为了绕过 classic Projects 已废弃的查询，直接把它清空  
+  if (user.projects) {
+    user.projects = { totalCount: 0, nodes: [] };
+  }
+  // —— End Patch ——  
   const scores = {followers: user.followers.totalCount, created: user.repositories.totalCount, stars: user.popular.nodes?.[0]?.stargazers?.totalCount ?? 0, forks: Math.max(0, ...data.user.repositories.nodes.map(({forkCount}) => forkCount))}
   const ranks = await graphql(queries.achievements.ranking(scores))
   const requirements = {stars: 5, followers: 3, forks: 1, created: 1}
